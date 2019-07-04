@@ -4,7 +4,7 @@ var inquirer = require("inquirer");
 var connection = mysql.createConnection({
     host: "localhost",
 
-    // Your port; if not 3306
+    // Your port
     port: 3306,
 
     // Your username
@@ -23,6 +23,7 @@ connection.connect(function(err) {
 
 });
 
+// variable for the selected item
 var choices = [];
 
 function displayProducts() {
@@ -31,6 +32,9 @@ function displayProducts() {
         for (var i = 0; i < res.length; i++) {
             console.log("Product Name: " + res[i].product_name);
             console.log("Item Id: " + res[i].item_id);
+            console.log("Price: " + res[i].price);
+            console.log("Stock Quantity: " + res[i].stock_quantity);
+            console.log("--------------------------------------")
             choices.push(res[i].item_id);
         }
         purchasePrompt();
@@ -38,8 +42,7 @@ function displayProducts() {
 }
 
 function purchasePrompt() {
-    // prompt for info about the item being wanting to purchse
-
+    // prompt for info about the item wanting to purchse
 
     inquirer
         .prompt([{
@@ -54,6 +57,8 @@ function purchasePrompt() {
                 type: "input",
                 message: "How many units would you like?",
                 validate: function(value) {
+
+                    // enter the input vaule as an integer
                     if ((isNaN(value) === false) && (value > 0) && (value % 1 === 0)) {
                         return true;
                     }
@@ -62,23 +67,28 @@ function purchasePrompt() {
             }
         ])
         .then(function(answer) {
+            // query the database for all items selected
             var query = connection.query("Select * FROM products WHERE ?", { item_id: answer.item_id }, function(err, res) {
                 if (err) throw err;
                 console.log("Your item(s) has been added to the bag!")
                     // console.log(res);
+                    // print the quantity the user want to purchase
                 orderPlaced(res[0], answer.Quantity);
 
             })
         });
 }
 
+// create a new function with the selected item and the quantity as the parameters to check the stock quantity
 function orderPlaced(product, Quantity) {
     if (Quantity > product.stock_quantity) {
-        console.log("Insufficient quantity!")
+        console.log("Insufficient quantity! Sorry, we do not have enough " + product.product_name + "to complete your order.")
     } else {
         updateProduct();
-        console.log("Updating the quantities of " + product.product_name);
-        var query = connection.query(
+        var totalCost = product.price * Quantity
+        console.log("Your total cost for " + Quantity + " units of " + product.product_name + " is " + totalCost + " Thank you!");
+        // update the stock quantity for the item purchased 
+        connection.query(
             "UPDATE products SET ? WHERE ?", [{
                 stock_quantity: product.stock_quantity - Quantity
             }, {

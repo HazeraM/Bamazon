@@ -82,11 +82,11 @@ function purchasePrompt() {
 // create a new function with the selected item and the quantity as the parameters to check the stock quantity
 function orderPlaced(product, Quantity) {
     if (Quantity > product.stock_quantity) {
-        console.log("Insufficient quantity! Sorry, we do not have enough " + product.product_name + "to complete your order.")
+        console.log("Insufficient quantity! Sorry, we do not have enough " + product.product_name + " to complete your order.")
     } else {
         updateProduct();
         var totalCost = product.price * Quantity
-        console.log("Your total cost for " + Quantity + " units of " + product.product_name + " is " + totalCost + " Thank you!");
+        console.log("Your total cost for " + Quantity + " units of " + product.product_name + " is " + "$" + totalCost + " Thank you!");
         // update the stock quantity for the item purchased 
         connection.query(
             "UPDATE products SET ? WHERE ?", [{
